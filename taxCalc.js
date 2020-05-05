@@ -99,6 +99,7 @@ function calculate (e) {
 	output += "<th scope=\"col\">Tax Bracket</th>\n";
 	output += "<th scope=\"col\">Marginal Amount</th>\n";
 	output += "<th scope=\"col\">Taxes paid in this bracket</th>\n";
+	output += "<th scope=\"col\">Money Kept</th>\n";
 	output += "</tr>\n";
 	output += "</thead>\n";
 	output += "<tbody>\n";
@@ -110,14 +111,14 @@ function calculate (e) {
 	for (var i in accountTypes) {
 		if (dbug) console.log ("calculate::" + i + ".");
 		output += "<tr>\n";
-		output += "<th scope=\"col\" id=\"tfsa\" colspan=\"9\">" + i + "</th>\n";
+		output += "<th scope=\"col\" id=\"tfsa\" colspan=\"10\">" + i + "</th>\n";
 		output += "</tr>\n";
 
 		for (var j = 0; j < times.length; j++) {
 			if (dbug) console.log ("calculate::" + times[j] + ".");
 			var divTaxCredit = false;
 			output += "<tr>\n";
-			output += "<th scope=\"col\" id=\"tfsa\" colspan=\"9\">" + times[j] + "</th>\n";
+			output += "<th scope=\"col\" id=\"tfsa\" colspan=\"10\">" + times[j] + "</th>\n";
 			output += "</tr>\n";
 			var inc, prov;
 			prov = fcs[(times[j] == "Retirement" ? "r" : "") + "province"].value;
