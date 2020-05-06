@@ -137,6 +137,8 @@ function calculate (e) {
 					divTaxCredit = true;
 				} else if (investmentType == "cg" && times[j] == "Retirement") {
 					inc = parseFloat(inc) + parseFloat(roi/2);
+				} else if (investmentType == "int" && times[j] == "Retirement") {
+					inc = parseFloat(inc) + parseFloat(roi);
 				}
 
 			}
