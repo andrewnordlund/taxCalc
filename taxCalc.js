@@ -144,7 +144,7 @@ function calculate (e) {
 			}
 			var taxesPaid = getTaxesPaid(inc, prov, divTaxCredit);
 			// Gotta calculate how much ahead you are.  Shucks.  How am I gonna do this....
-			if (times[j].match(/retire/i)) {
+			if (times[j] == "Retirement") {
 				// For TFSA:  You're ahead the ROI. period.
 				if (accountTypes[i] == "TFSA") {
 					taxesPaid["total"]["ahead"]= fcs["roi"].value;
@@ -156,7 +156,7 @@ function calculate (e) {
 					//var ahead = fcs["roi"].value
 					
 				}
-				taxesPaid["total"]["ahead"] = (times[j].match(/retirement/i) ? fcs["roi"].value : " - ");
+				//taxesPaid["total"]["ahead"] = (times[j].match(/retirement/i) ? fcs["roi"].value : " - ");
 			}
 			accountTypes[i][times[j]] = taxesPaid;
 			output += "<tbody>\n";
@@ -173,13 +173,13 @@ function calculate (e) {
 						output += diff.toFixed(2) + "</div>";
 						accountTypes[i]["Working"][k]["ahead"] = diff.toFixed(2);
 					} else if (times[j] == "Retirement") {
-						let diff = (inc - accountTypes[i][times[j]][k]["taxesPaid"]) - 
-							(fcs["retirementIncome"].value - accountTypes["Unregistered"][times[j]][k]["taxesPaid"]);
+						let diff = accountTypes["RRSP"]["Retirement"][k]["takeHome"] - accountTypes["Unregistered"]["Retirement"][k]["takeHome"];
+							//(parseFloat(fcs["retirementIncome"].value) + (parseFloat(roi)/yearsInRetirement) - accountTypes["Unregistered"][times[j]][k]["taxesPaid"]);
 						accountTypes[i]["Retirement"][k]["ahead"] = diff.toFixed(2);
 					}
 				}
 				output += "</td>\n";
-				output += "<td>$" + parseFloat(inc - accountTypes[i][times[j]][k]["taxesPaid"]).toFixed(2) + "</td>\n";
+				output += "<td>$" + accountTypes[i][times[j]][k]["takeHome"] /*parseFloat(inc - accountTypes[i][times[j]][k]["taxesPaid"]).toFixed(2)*/ + "</td>\n";
 				output += "<td>" + accountTypes[i][times[j]][k]["avgRate"] + "%</td>\n";
 				output += "<td>" + accountTypes[i][times[j]][k]["marginalRate"] + "%</td>\n";
 				output += "<td>" + accountTypes[i][times[j]][k]["bracket"] + "<div>" + taxesPaid[k]["range"] + "</td>\n";
@@ -210,6 +210,7 @@ function getTaxesPaid (taxable, prov, doDivTaxCredit) {
 		var tmpTaxable = taxable;
 		var sum = 0;
 		var taxesPaid = 0;
+		var takeHome = 0;
 		var range = "";
 		var marginalPaid = 0;
 		var marginalRate = 0;
@@ -274,8 +275,7 @@ function getTaxesPaid (taxable, prov, doDivTaxCredit) {
 			taxesPaid = Math.max(taxesPaid-divTaxCredit, 0);
 			if (dbug) console.log ("Ending with taxesPaid: $" + taxesPaid + ".");
 		}
-		
-		rv[part] = {"taxesPaid" : taxesPaid.toFixed(2), "avgRate" : (taxesPaid*100/taxable).toFixed(2), "bracket" : bracket, "range" : range, "marginalRate" : (marginalRate * 100).toFixed(2), "marginalPaid" : marginalPaid.toFixed(2), "marginalAmount" : parseFloat(marginalAmount).toFixed(2)};
+		rv[part] = {"taxesPaid" : taxesPaid.toFixed(2), "takeHome" : (taxable - taxesPaid).toFixed(2),"avgRate" : (taxesPaid*100/taxable).toFixed(2), "bracket" : bracket, "range" : range, "marginalRate" : (marginalRate * 100).toFixed(2), "marginalPaid" : marginalPaid.toFixed(2), "marginalAmount" : parseFloat(marginalAmount).toFixed(2)};
 		if (dbug) console.log("Finished Dealing with " + part + ".\n");
 	}
 
@@ -283,7 +283,7 @@ function getTaxesPaid (taxable, prov, doDivTaxCredit) {
 	var totMarginalRate = parseFloat(rv["fed"]["marginalRate"]) + parseFloat(rv["prov"]["marginalRate"]);
 	var totMarginalPaid = parseFloat(rv["fed"]["marginalPaid"]) + parseFloat(rv["prov"]["marginalPaid"]);
 	
-	rv["total"] = {"taxesPaid" : totalTaxesPaid.toFixed(2), "avgRate" : (totalTaxesPaid*100/taxable).toFixed(2), "bracket" : "", "range" : "", "marginalRate" : totMarginalRate, "marginalPaid" : totMarginalPaid.toFixed(2), "marginalAmount" : parseFloat(rv["fed"]["marginalAmount"]) + parseFloat(rv["prov"]["marginalAmount"])};
+	rv["total"] = {"taxesPaid" : totalTaxesPaid.toFixed(2), "takeHome" : (taxable - totalTaxesPaid).toFixed(2), "avgRate" : (totalTaxesPaid*100/taxable).toFixed(2), "bracket" : "", "range" : "", "marginalRate" : totMarginalRate, "marginalPaid" : totMarginalPaid.toFixed(2), "marginalAmount" : parseFloat(rv["fed"]["marginalAmount"]) + parseFloat(rv["prov"]["marginalAmount"])};
 	return rv;
 } //  End of getTaxesPaid
 
