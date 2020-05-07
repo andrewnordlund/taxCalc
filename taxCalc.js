@@ -144,6 +144,7 @@ function calculate (e) {
 			}
 			var taxesPaid = getTaxesPaid(inc, prov, divTaxCredit);
 			// Gotta calculate how much ahead you are.  Shucks.  How am I gonna do this....
+			/*
 			if (times[j] == "Retirement") {
 				// For TFSA:  You're ahead the ROI. period.
 				if (accountTypes[i] == "TFSA") {
@@ -158,6 +159,7 @@ function calculate (e) {
 				}
 				//taxesPaid["total"]["ahead"] = (times[j].match(/retirement/i) ? fcs["roi"].value : " - ");
 			}
+			*/
 			accountTypes[i][times[j]] = taxesPaid;
 			output += "<tbody>\n";
 			for (var k in taxesPaid) {
@@ -166,26 +168,47 @@ function calculate (e) {
 				output += "<td>" + k + "</td>\n";
 				output += "<td>$" + inc + "</td>\n";
 				output += "<td>$" + accountTypes[i][times[j]][k]["taxesPaid"];
-				if (i == "RRSP" && amntInvested > 0) {
-					if (times[j] == "Working") {
-						output += "<div>Tax Return $";
-						let diff = accountTypes["Unregistered"]["Working"][k]["taxesPaid"] - accountTypes["RRSP"]["Working"][k]["taxesPaid"];
-						output += diff.toFixed(2) + "</div>";
-						accountTypes[i]["Working"][k]["ahead"] = diff.toFixed(2);
-					} else if (times[j] == "Retirement") {
-						let diff = accountTypes["RRSP"]["Retirement"][k]["takeHome"] - accountTypes["Unregistered"]["Retirement"][k]["takeHome"];
+				if (amntInvested > 0) {
+					if (i == "RRSP") {
+						if (times[j] == "Working") {
+							output += "<div>Tax Return $";
+							let diff = accountTypes["Unregistered"]["Working"][k]["taxesPaid"] - accountTypes["RRSP"]["Working"][k]["taxesPaid"];
+							output += diff.toFixed(2) + "</div>";
+							accountTypes[i]["Working"][k]["ahead"] = diff.toFixed(2);
+						} else if (times[j] == "Retirement") {
+							let diff = accountTypes["RRSP"]["Retirement"][k]["takeHome"] - accountTypes["Unregistered"]["Retirement"][k]["takeHome"];
 							//(parseFloat(fcs["retirementIncome"].value) + (parseFloat(roi)/yearsInRetirement) - accountTypes["Unregistered"][times[j]][k]["taxesPaid"]);
-						accountTypes[i]["Retirement"][k]["ahead"] = diff.toFixed(2);
+							accountTypes[i]["Retirement"][k]["ahead"] = diff.toFixed(2);
+						}
+					} else if (i == "TFSA") {
+						if (times[j] == "Working") accountTypes[i]["Working"][k]["ahead"] = " - ";
+						if (times[j] == "Retirement") accountTypes[i]["Retirement"][k]["ahead"] = roi;
+					} else if (i == "Unregistered") {
+						if (times[j] == "Working") { 
+							accountTypes[i]["Working"][k]["ahead"] = " - ";
+						} else if (times[j] == "Retirement") {
+							//accountTypes[i]["Retirement"][k]["ahead"] = roi;  // This isn't accurate.
+							// You'd be ahead the (income + roi - taxes) - (income - taxes)
+							console.log ("Inc: " + fcs["retirementIncome"].value);
+							dbug = true;
+							var tempTaxesPaid = getTaxesPaid(fcs["retirementIncome"].value, prov, divTaxCredit);
+							dbug = false;
+							console.log (accountTypes[i]["Retirement"][k]["takeHome"] + " - " + parseFloat(tempTaxesPaid[k]["takeHome"].toFixed(2)));
+							accountTypes[i]["Retirement"][k]["ahead"] = (accountTypes[i]["Retirement"][k]["takeHome"] - parseFloat(tempTaxesPaid[k]["takeHome"])).toFixed(2);
+						}
 					}
+				} else {
+					if (times[j] == "Retirement") accountTypes[i]["Retirement"][k]["ahead"] = " - ";
+					if (times[j] == "Working") accountTypes[i]["Working"][k]["ahead"] = " - ";
 				}
 				output += "</td>\n";
-				output += "<td>$" + accountTypes[i][times[j]][k]["takeHome"] /*parseFloat(inc - accountTypes[i][times[j]][k]["taxesPaid"]).toFixed(2)*/ + "</td>\n";
+				output += "<td>$" + accountTypes[i][times[j]][k]["takeHome"].toFixed(2) /*parseFloat(inc - accountTypes[i][times[j]][k]["taxesPaid"]).toFixed(2)*/ + "</td>\n";
 				output += "<td>" + accountTypes[i][times[j]][k]["avgRate"] + "%</td>\n";
 				output += "<td>" + accountTypes[i][times[j]][k]["marginalRate"] + "%</td>\n";
 				output += "<td>" + accountTypes[i][times[j]][k]["bracket"] + "<div>" + taxesPaid[k]["range"] + "</td>\n";
 				output += "<td>$" + accountTypes[i][times[j]][k]["marginalAmount"] + "</td>\n";
 				output += "<td> $" + accountTypes[i][times[j]][k]["marginalPaid"] + "</td>\n";
-				output += "<td>" + (accountTypes[i][times[j]][k].hasOwnProperty("ahead") ? "$" + accountTypes[i][times[j]][k]["ahead"] : " - ") + "</td>\n";
+				output += "<td>" + (accountTypes[i][times[j]][k]["ahead"] == " - " ? " - " : "$" + accountTypes[i][times[j]][k]["ahead"]) + "</td>\n";
 				output += "</tr>\n";
 			}
 			output += "</tbody>\n";
@@ -275,15 +298,22 @@ function getTaxesPaid (taxable, prov, doDivTaxCredit) {
 			taxesPaid = Math.max(taxesPaid-divTaxCredit, 0);
 			if (dbug) console.log ("Ending with taxesPaid: $" + taxesPaid + ".");
 		}
-		rv[part] = {"taxesPaid" : taxesPaid.toFixed(2), "takeHome" : (taxable - taxesPaid).toFixed(2),"avgRate" : (taxesPaid*100/taxable).toFixed(2), "bracket" : bracket, "range" : range, "marginalRate" : (marginalRate * 100).toFixed(2), "marginalPaid" : marginalPaid.toFixed(2), "marginalAmount" : parseFloat(marginalAmount).toFixed(2)};
+		if (dbug) {
+			console.log (part + ": taxable: " + taxable + ", taxesPaid: " + taxesPaid);
+			console.log (part + ": takeHome: " + (taxable - taxesPaid) + ".");
+		}
+		rv[part] = {"taxesPaid" : taxesPaid.toFixed(2), "takeHome" : (taxable - taxesPaid),"avgRate" : (taxesPaid*100/taxable).toFixed(2), "bracket" : bracket, "range" : range, "marginalRate" : (marginalRate * 100).toFixed(2), "marginalPaid" : marginalPaid.toFixed(2), "marginalAmount" : parseFloat(marginalAmount).toFixed(2)};
 		if (dbug) console.log("Finished Dealing with " + part + ".\n");
 	}
 
 	var totalTaxesPaid = parseFloat(rv["fed"]["taxesPaid"]) + parseFloat(rv["prov"]["taxesPaid"]);
 	var totMarginalRate = parseFloat(rv["fed"]["marginalRate"]) + parseFloat(rv["prov"]["marginalRate"]);
 	var totMarginalPaid = parseFloat(rv["fed"]["marginalPaid"]) + parseFloat(rv["prov"]["marginalPaid"]);
-	
-	rv["total"] = {"taxesPaid" : totalTaxesPaid.toFixed(2), "takeHome" : (taxable - totalTaxesPaid).toFixed(2), "avgRate" : (totalTaxesPaid*100/taxable).toFixed(2), "bracket" : "", "range" : "", "marginalRate" : totMarginalRate, "marginalPaid" : totMarginalPaid.toFixed(2), "marginalAmount" : parseFloat(rv["fed"]["marginalAmount"]) + parseFloat(rv["prov"]["marginalAmount"])};
+	if (dbug) {
+		console.log ("Total: taxable: " + taxable + ", taxesPaid: " + totalTaxesPaid);
+		console.log ("Total: takeHome: " + (taxable - totalTaxesPaid) + ".");
+	}
+	rv["total"] = {"taxesPaid" : totalTaxesPaid.toFixed(2), "takeHome" : (taxable - totalTaxesPaid), "avgRate" : (totalTaxesPaid*100/taxable).toFixed(2), "bracket" : "", "range" : "", "marginalRate" : totMarginalRate, "marginalPaid" : totMarginalPaid.toFixed(2), "marginalAmount" : parseFloat(rv["fed"]["marginalAmount"]) + parseFloat(rv["prov"]["marginalAmount"])};
 	return rv;
 } //  End of getTaxesPaid
 
