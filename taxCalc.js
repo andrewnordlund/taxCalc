@@ -189,11 +189,7 @@ function calculate (e) {
 						} else if (times[j] == "Retirement") {
 							//accountTypes[i]["Retirement"][k]["ahead"] = roi;  // This isn't accurate.
 							// You'd be ahead the (income + roi - taxes) - (income - taxes)
-							console.log ("Inc: " + fcs["retirementIncome"].value);
-							dbug = true;
 							var tempTaxesPaid = getTaxesPaid(fcs["retirementIncome"].value, prov, divTaxCredit);
-							dbug = false;
-							console.log (accountTypes[i]["Retirement"][k]["takeHome"] + " - " + parseFloat(tempTaxesPaid[k]["takeHome"].toFixed(2)));
 							accountTypes[i]["Retirement"][k]["ahead"] = (accountTypes[i]["Retirement"][k]["takeHome"] - parseFloat(tempTaxesPaid[k]["takeHome"])).toFixed(2);
 						}
 					}
@@ -302,6 +298,10 @@ function getTaxesPaid (taxable, prov, doDivTaxCredit) {
 			console.log (part + ": taxable: " + taxable + ", taxesPaid: " + taxesPaid);
 			console.log (part + ": takeHome: " + (taxable - taxesPaid) + ".");
 		}
+		// Now for the personal tax credit.  Take the personal amount, multiply it by the first tax bracket amount to get the credit amount.
+		// Then subtract that amount from taxesPaid
+		let ptc = jur[part]["basicPersonal"] * jur[part]["rate"][1];
+		taxesPaid -= ptc;
 		rv[part] = {"taxesPaid" : taxesPaid.toFixed(2), "takeHome" : (taxable - taxesPaid),"avgRate" : (taxesPaid*100/taxable).toFixed(2), "bracket" : bracket, "range" : range, "marginalRate" : (marginalRate * 100).toFixed(2), "marginalPaid" : marginalPaid.toFixed(2), "marginalAmount" : parseFloat(marginalAmount).toFixed(2)};
 		if (dbug) console.log("Finished Dealing with " + part + ".\n");
 	}
