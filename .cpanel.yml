@@ -1,0 +1,7 @@
+---
+deployment:
+	tasks:
+		- export DEPLOYPATH=/home/nordberg/public_html/nordburg.ca/calculators/taxCalc/
+		- /bin/cp taxCalc.html $DEPLOYPATH
+		- /bin/cp taxCalc.css $DEPLOYPATH
+		- /bin/cp taxCalc.js $DEPLOYPATH
