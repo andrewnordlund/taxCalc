@@ -9,4 +9,6 @@ For example, if you make $50,000/year now, and you expect to have an annual pens
 This should only be used as a general proof-of-concept.  I am _not_ a tax professional; just a nerd with a passing interest in Personal Finance.
 
 ## Hosted
-This calculator is hosted at https://www.nordburg.ca/calculators/taxCalc/taxCalc.html. 
+This calculator is hosted at the following location:
+1. [Tax Calculator on Nordburg.ca](https://www.nordburg.ca/calculators/taxCalc/taxCalc.html)
+1. [Tax Calculator GitHub Pages](https://andrewnordlund.github.io/taxCalc/taxCalc.html)
