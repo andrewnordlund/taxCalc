@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Proof of Concept Tax Calculator</title>
+		<script type="text/Javascript" src="yearbyyear.js"></script>
+		<link rel="Stylesheet" type="text/css" href="taxCalc.css" />
+	</head>
+	<body>
+		<header><h1>Proof of Concept Tax Calculator</h1></header>
+		<main>
+		<div id="cont">
+			<div id="warningHolder">
+				<p><strong>WARNING:</strong> This is a proof-of-concept calculator designed to give a general idea of how taxes are calculated in the <em>simplest</em> of scenarios.  It should in no way be considered advice, or binding, or predictive. Consult a tax professional for actual advice.</p>
+				<p>Note that the Retirement section doesn't necessarily mean "retirement", but rather a second period where income changes, perhaps no income.</p>
+			</div>
+			<div id="formHolder">
+				<h2>Your Details</h2>
+				<fieldset>
+					<legend>Working</legend>
+					<div class="fieldHolder">
+						<label for="province">Province</label>
+						<select id="province">
+							<option value="on">Ontario</option>
+							<option value="ns">Nova Scotia</option>
+						</select>
+					</div>
+					<div class="fieldHolder">
+						<label for="workIncome">Work Income</label>
+						<input type="text" id="workIncome" value="50000" />
+					</div>
+				</fieldset>
+				<fieldset>
+					<legend>Investment</legend>
+					<div class="fieldHolder">
+						<label for="initAmntInvested">Initial Amount Invested $</label>
+						<input type="text" id="initAmntInvested" value="10000" />
+					</div>
+					<div class="fieldHolder">
+						<label for="yearlyContrib">Yearly Contributions $</label>
+						<input type="text" id="yearlyContrib" value="5000" />
+					</div>
+					<div class="fieldHolder">
+						<label for="totalAnnualReturn">Total Annual Return %</label>
+						<input type="number" id="totalAnnualReturn" value="7">
+					</div>
+					<div class="fieldHolder">
+						<label for="annualGrowth">Annual Growth %</label>
+						<input type="number" id="annualGrowth" value="4">
+					</div>
+					<div class="fieldHolder">
+						<label for="annualDiv">Annual Dividends %</label>
+						<input type="number" id="annualDiv" value="3">
+					</div>
+				</fieldset>
+				<fieldset>
+					<legend>Retirement</legend>
+					<div class="fieldHolder">
+						<label for="rprovince">Province</label><br>
+						<select id="rprovince">
+							<option value="on">Ontario</option>
+							<option value="ns">Nova Scotia</option>
+						</select>
+					</div>
+					<div class="fieldHolder">
+						<label for="retirementIncome">Retirement Income</label>
+						<span class="labelDescription" id="reitrementIncomeDescription">(Pension income, non-investment income)</span>
+						<input type="text" id="retirementIncome" value="24000" aria-describedby="reitrementIncomeDescription"/>
+					</div>
+					<div class="fieldHolder">
+						<label for="yearsLeft">Years left until retirement</label>
+						<input id="yearsLeft" type="number" value="2">
+					</div>
+				</fieldset>
+				<div class="fieldHolder">
+					<input type="button" id="calcBtn" value="Calculate" />
+				</div>
+			</div>
+			<div id="resultsHolder">
+			</div>
+			</div>
+		</main>
+		<footer></footer>
+		<script type="text/Javascript">
+		init();
+		</script>
+	</body>
+</html>
