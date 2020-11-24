@@ -90,7 +90,6 @@ function calculate (e) {
 	output += "<td>$ " + initAmntInvested + "</td>\n";
 
 	
-	//let taxesPaid = getTaxesPaid (taxableIncome, province, false);
 
 
 	output += "<td>$ 0.00</td>\n";	// taxes paid on regular income
@@ -108,7 +107,11 @@ function calculate (e) {
 		if (dbug) console.log ("Growth: " + growth);
 
 		output += "\t<td>$ " + growth.toFixed(2) + "</td>\n";
-		output += "\t<td>$ " + "</td>\n";	// Get div
+		let div = (annualDiv/100) * unregBal;
+		output += "\t<td>$ " + div.toFixed(2) + "</td>\n";	
+
+		let taxesPaid = getTaxesPaid (taxableIncome, province, true);
+
 		
 		unregBal = unregBal *1 + growth*1;
 		output += "\t<td>$ " + unregBal + "</td>\n";
