@@ -62,10 +62,12 @@ function calculate (e) {
 	var initAmntInvested = fcs["initAmntInvested"].value;
 	var annualGrowth = fcs["annualGrowth"].value;
 	var totalAnnualReturn = fcs["totalAnnualReturn"].value;
+	var yearlyContrib = fcs["yearlyContrib"].value;
 	var annualDiv = fcs["annualDiv"].value;
 	var retirementTaxable = fcs["retirementIncome"].value;
 	var rprovince = fcs["rprovince"].value;
 	let output ="";
+	let unregTax, rrspTax, unregCumTaxm, rrspCumTax = 0;
 
 	output += "<h2>Results</h2>\n";
 	output += "<details><summary>";
@@ -81,20 +83,30 @@ function calculate (e) {
 	output += "<th scope=\"col\">Div</th>\n";
 	output += "<th scope=\"col\">Balance</th>\n";
 	output += "<th scope=\"col\">Taxes Paid</th>\n";
+	output += "<th scope=\"col\">Cumulative Taxes Paid</th>\n";
 	output += "<th scope=\"col\">Balance (RRSP)</th>\n";
 	output += "<th scope=\"col\">Taxes Paid (RRSP)</th>\n";
+	output += "<th scope=\"col\">Cumulative Taxes Paid (RRSP)</th>\n";
 	output += "</tr>\n";
-	output += "<td>0</td>\n";
-	output += "<td>$ 0.00</td>\n";
-	output += "<td>$ 0.00</td>\n";
+	output += "<td>0</td>\n";		// Year
+	output += "<td>$ 0.00</td>\n";		// Growth
+	output += "<td>$ 0.00</td>\n";		// Div
+	output += "<td>$ " + initAmntInvested + "</td>\n";	// Balance
+
+	unregTax = getTaxesPaid (taxableIncome, province, false);
+	rrspTax = getTaxesPaid (taxableIncome - initAmntInvested, province, false);
+
+	unregTax=unregTax["total"]["taxesPaid"];
+	rrspTax=rrspTax["total"]["taxesPaid"];
+
+	unregCumTax = unregTax;
+	rrspCumTax = rrspTax;
+
+	output += "<td>$ " + unregTax + "</td>\n";	// taxes paid on regular income
+	output += "<td>$ " + unregCumTax + "</td>\n";	// cumulative taxes paid on regular income
 	output += "<td>$ " + initAmntInvested + "</td>\n";
-
-	
-
-
-	output += "<td>$ 0.00</td>\n";	// taxes paid on regular income
-	output += "<td>$ " + initAmntInvested + "</td>\n";
-	output += "<td>$ 0.00</td>\n";	// taxes paid on (regular income - initAmntInvested)
+	output += "<td>$ " + rrspTax + "</td>\n";	// taxes paid on (regular income - initAmntInvested)
+	output += "<td>$ " + rrspCumTax + "</td>\n";	// cumulative taxes paid on (regular income - initAmntInvested)
 
 	let rrspBal = initAmntInvested;
 	let unregBal = initAmntInvested;
@@ -111,15 +123,25 @@ function calculate (e) {
 		output += "\t<td>$ " + div.toFixed(2) + "</td>\n";	
 
 		let taxesPaid = getTaxesPaid (taxableIncome, province, true);
+		taxesPaid = taxesPaid["total"]["taxesPaid"];
 
+		unregCumTax = unregCumTax*1 + taxesPaid*1;
 		
 		unregBal = unregBal *1 + growth*1;
 		output += "\t<td>$ " + unregBal + "</td>\n";
-		output += "\t<td>$ " + "</td>\n";
+		output += "\t<td>$ " + taxesPaid + "</td>\n";
+		output += "\t<td>$ " + unregCumTax.toFixed(2) + "</td>\n";
 
 		rrspBal = rrspBal* (1 + (totalAnnualReturn/100))*1;
 		output += "\t<td>$ " + rrspBal + "</td>\n";
-		output += "\t<td>$ " + "</td>\n";
+
+		rrspTax = getTaxesPaid (taxableIncome - yearlyContrib, province, false);
+		rrspTax = rrspTax["total"]["taxesPaid"];
+
+		rrspCumTax = rrspCumTax *1 + rrspTax*1;
+		
+		output += "\t<td>$ " + rrspTax + "</td>\n";
+		output += "\t<td>$ " + rrspCumTax.toFixed(2) + "</td>\n";
 		output += "</tr>\n";
 	}
 	//output += "</tbody>\n";
@@ -306,7 +328,7 @@ function getTaxesPaid (taxable, prov, doDivTaxCredit) {
 			marginalAmount = tmpTaxable;
 			marginalPaid = taxesPaid;
 
-			if (dbug) console.log ("taxes paid is $" + taxesPaid + " in the top bracket (= " + marginalRate + " x " + tmpTaxable + ").");
+			//if (dbug) console.log ("taxes paid is $" + taxesPaid + " in the top bracket (= " + marginalRate + " x " + tmpTaxable + ").");
 			range = "$" + jur[part].amount[jur[part].amount.length-1] + "+";
 
 			tmpTaxable = sum;
@@ -321,17 +343,17 @@ function getTaxesPaid (taxable, prov, doDivTaxCredit) {
 			if (tmpTaxable > jur[part].amount[i]) {
 				taxesPaid += jur[part].amount[i] * jur[part].rate[i];
 				tmpTaxable -= jur[part].amount[i];
-				if (dbug) console.log ("looping: taxesPaid is now:" + taxesPaid + " and tmpTaxable is now " + tmpTaxable + ".");
+				//if (dbug) console.log ("looping: taxesPaid is now:" + taxesPaid + " and tmpTaxable is now " + tmpTaxable + ".");
 			} else {
 				keepGoing = false;
 				if (marginalRate == 0) marginalRate = jur[part].rate[i];
 				if (marginalPaid == 0) marginalPaid = tmpTaxable * marginalRate;
 				if (marginalAmount == 0) {
 					marginalAmount = tmpTaxable;
-					if (dbug) console.log("Setting marginalAmount to " + marginalAmount + " and not in top tax bracket.");
+					//if (dbug) console.log("Setting marginalAmount to " + marginalAmount + " and not in top tax bracket.");
 				}
 				taxesPaid += tmpTaxable * jur[part].rate[i];
-				if (dbug) console.log ("final: taxesPaid is now:" + taxesPaid + " and tmpTaxable is now " + tmpTaxable + ".");
+				//if (dbug) console.log ("final: taxesPaid is now:" + taxesPaid + " and tmpTaxable is now " + tmpTaxable + ".");
 				if (bracket == 0) bracket = i;
 				range = "$" + (sum - jur[part].amount[i]) + (i < jur[part].amount.length - 2 ? " - $" + sum :  " - $" + jur[part].amount[i]) 
 			}
@@ -341,13 +363,13 @@ function getTaxesPaid (taxable, prov, doDivTaxCredit) {
 			//console.log("marginalAmount: " + marginalAmount + ".");
 		}
 		//Must take into account divident tax credit
-		if (doDivTaxCredit && fcs["investmentType"].value == "div") {
+		if (doDivTaxCredit) {
 			if (dbug) {
 				console.log ("Calculating div tax credit for part " + part + ".");
 				console.log ("Starting with taxesPaid: $" + taxesPaid + ".");
-				console.log ("grossedUpAmnt = " + fcs["roi"].value + " x " + brackets.grossUpRate + ".");
+				console.log ("grossedUpAmnt = " + fcs["annualDiv"].value + " x " + brackets.grossUpRate + ".");
 			}
-			var grossedUpAmnt = fcs["roi"].value * brackets.grossUpRate;
+			var grossedUpAmnt = fcs["annualDiv"].value * brackets.grossUpRate;
 			if (dbug) console.log("divTaxCredit = $" + grossedUpAmnt + " x " +  jur[part].divTaxCreditRate + ".");
 			var divTaxCredit = grossedUpAmnt * jur[part].divTaxCreditRate;
 			if (dbug) console.log("divTaxCredit = $" + divTaxCredit + ".");
