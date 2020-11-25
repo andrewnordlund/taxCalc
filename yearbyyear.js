@@ -93,7 +93,7 @@ function calculate (e) {
 	output += "<td>$ 0.00</td>\n";		// Div
 	output += "<td>$ " + initAmntInvested + "</td>\n";	// Balance
 
-	//dbug = true;
+	dbug = true;
 	unregTax = getTaxesPaid (taxableIncome, province, 0);
 	dbug = false;
 	rrspTax = getTaxesPaid (taxableIncome - initAmntInvested, province, 0);
@@ -112,6 +112,7 @@ function calculate (e) {
 
 	let rrspBal = initAmntInvested;
 	let unregBal = initAmntInvested;
+	let divTotal = 0;
 	for (let i = 1; i <= yearsLeft; i++) {
 		
 		output += "<tr>\n";
@@ -122,22 +123,23 @@ function calculate (e) {
 
 		output += "\t<td>$ " + growth.toFixed(2) + "</td>\n";
 		let div = (annualDiv/100) * unregBal;
+		divTotal += div;
 		output += "\t<td>$ " + div.toFixed(2) + "</td>\n";	
 
 		dbug = true;
-		let taxesPaid = getTaxesPaid ((taxableIncome*1 + div*1), province, div);
+		let taxesPaid = getTaxesPaid ((taxableIncome*1 + div*brackets.grossUpRate), province, div);
 		dbug = !true;
 		taxesPaid = taxesPaid["total"]["taxesPaid"];
 
 		unregCumTax = unregCumTax*1 + taxesPaid*1;
 		
 		unregBal = unregBal *1 + growth*1;
-		output += "\t<td>$ " + unregBal + "</td>\n";
+		output += "\t<td>$ " + unregBal.toFixed(2) + "</td>\n";
 		output += "\t<td>$ " + taxesPaid + "</td>\n";
 		output += "\t<td>$ " + unregCumTax.toFixed(2) + "</td>\n";
 
 		rrspBal = rrspBal* (1 + (totalAnnualReturn/100))*1;
-		output += "\t<td>$ " + rrspBal + "</td>\n";
+		output += "\t<td>$ " + rrspBal.toFixed(2) + "</td>\n";
 
 		rrspTax = getTaxesPaid (taxableIncome - yearlyContrib, province, 0);
 		rrspTax = rrspTax["total"]["taxesPaid"];
@@ -149,7 +151,42 @@ function calculate (e) {
 		output += "</tr>\n";
 	}
 	//output += "</tbody>\n";
+	output += "<tr>\n";
+	output += "\t<td>Totals</td>\n";
+	output += "\t<td>$ " + growth.toFixed(2) + "</td>\n";
+	output += "\t<td>$ " + divTotal.toFixed(2) + "</td>\n";
+	output += "\t<td>$ " + unregBal.toFixed(2) + "</td>\n";
+	output += "\t<td>$ " + unregCumTax.toFixed(2) + "</td>\n";
+	output += "\t<td>$ " + unregCumTax.toFixed(2) + "</td>\n";
+	output += "\t<td>$ " + rrspBal.toFixed(2) + "</td>\n";
+	output += "\t<td>$ " + rrspTax + "</td>\n";
+	output += "\t<td>$ " + rrspCumTax.toFixed(2) + "</td>\n";
+	output += "</tr>\n";
 	output += "</table>\n";
+
+	output += "<section>\n";
+	
+	output += "<h3>Scenario A: Withdraw all RRSP in one gap year</h3>\n";
+
+	output += "<dl>\n";
+	output += "	<dt>RRSP Value:</dt>\n";
+	output += "	<dd>$ " + rrspBal.toFixed(2) + "</dd>\n";
+
+	output += "	<dt>Taxes paid on working earnings</dt>\n";
+	output += "	<dd>$ " + rrspCumTax.toFixed(2) + "</dd>\n";
+
+	let rrspLumpSumTax = getTaxesPaid(rrspBal, rprovince, 0);
+	rrspLumpSumTax = rrspLumpSumTax["total"]["taxesPaid"];
+
+	output += "	<dt>Taxes paid on a total RRSP withdrawal</dt>\n";
+	output += "	<dd>$ " + rrspLumpSumTax + "</dd>\n";
+
+	output += "	<dt>Total taxes paid</dt>\n";
+	var totTax = rrspCumTax*1 + rrspLumpSumTax*1;
+	output += "	<dd>$ " + totTax.toFixed(2) + "</dd>\n";
+	output += "</dl>\n";
+	
+	output += "</section>\n";
 	
 	fcs["resultsHolder"].innerHTML = output;
 } // End of calculate
@@ -308,6 +345,7 @@ function getTaxesPaid (taxable, prov, divAmnt) {
 		};
 	var jur = {"fed" : brackets.fed, "prov" : brackets.prov[prov]};
 	var origTaxable = taxable;
+	if (dbug) console.log ("Gonna calculate taxes on $" + taxable + ", of which $" + divAmnt + " is from dividends."); 
 	for (var part in jur) {
 		if (dbug) console.log("Dealing with part " + part + ".");
 		var keepGoing = true;
@@ -346,14 +384,14 @@ function getTaxesPaid (taxable, prov, divAmnt) {
 			if (tmpTaxable > jur[part].amount[i]) {
 				taxesPaid += jur[part].amount[i] * jur[part].rate[i];
 				tmpTaxable -= jur[part].amount[i];
-				if (dbug) console.log ("looping: taxesPaid is now:" + taxesPaid + " and tmpTaxable is now " + tmpTaxable + ".");
+				//if (dbug) console.log ("looping: taxesPaid is now:" + taxesPaid + " and tmpTaxable is now " + tmpTaxable + ".");
 			} else {
 				keepGoing = false;
 				if (marginalRate == 0) marginalRate = jur[part].rate[i];
 				if (marginalPaid == 0) marginalPaid = tmpTaxable * marginalRate;
 				if (marginalAmount == 0) {
 					marginalAmount = tmpTaxable;
-					if (dbug) console.log("Setting marginalAmount to " + marginalAmount + " and not in top tax bracket.");
+					//if (dbug) console.log("Setting marginalAmount to " + marginalAmount + " and not in top tax bracket.");
 				}
 				taxesPaid += tmpTaxable * jur[part].rate[i];
 				if (dbug) console.log ("final: taxesPaid is now:" + taxesPaid + " and tmpTaxable is now " + tmpTaxable + ".");
@@ -361,12 +399,12 @@ function getTaxesPaid (taxable, prov, divAmnt) {
 				range = "$" + (sum - jur[part].amount[i]) + (i < jur[part].amount.length - 2 ? " - $" + sum :  " - $" + jur[part].amount[i]) 
 			}
 		}
-		if (dbug) {
+		//if (dbug) {
 			//console.log ("Setting range: " + range + ".");
 			//console.log("marginalAmount: " + marginalAmount + ".");
-		}
+		//}
 		//Must take into account dividend tax credit
-		if (divAmnt) {
+		if (divAmnt > 0) {
 			if (dbug) {
 				console.log ("Calculating div tax credit for part " + part + ".");
 				console.log ("Starting with taxesPaid: $" + taxesPaid + ".");
@@ -382,6 +420,7 @@ function getTaxesPaid (taxable, prov, divAmnt) {
 		// Now for the personal tax credit.  Take the personal amount, multiply it by the first tax bracket amount to get the credit amount.
 		// Then subtract that amount from taxesPaid
 		let ptc = jur[part]["basicPersonal"] * jur[part]["rate"][1];
+		if (dbug) console.log ("Basic Personal Credit: $"  +ptc + ".");
 		taxesPaid = taxesPaid - ptc;
 		if (dbug) {
 			console.log (part + ": taxable: " + taxable + ", taxesPaid: " + taxesPaid);
@@ -391,7 +430,7 @@ function getTaxesPaid (taxable, prov, divAmnt) {
 		if (dbug) console.log("Finished Dealing with " + part + ".\n");
 	}
 
-	if (dbug) console.log ("Fed taxes paid: $" + rv["fed"]["taxesPaid"] + ", prof taxes paid: $" + rv["prov"]["taxesPaid"] + ".");
+	if (dbug) console.log ("Fed taxes paid: $" + rv["fed"]["taxesPaid"] + ", prov taxes paid: $" + rv["prov"]["taxesPaid"] + ".");
 	var totalTaxesPaid = parseFloat(rv["fed"]["taxesPaid"]) + parseFloat(rv["prov"]["taxesPaid"]);
 	var totMarginalRate = parseFloat(rv["fed"]["marginalRate"]) + parseFloat(rv["prov"]["marginalRate"]);
 	var totMarginalPaid = parseFloat(rv["fed"]["marginalPaid"]) + parseFloat(rv["prov"]["marginalPaid"]);
