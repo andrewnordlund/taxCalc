@@ -399,6 +399,15 @@ function getTaxesPaid (taxable, prov, doDivTaxCredit) {
 	return rv;
 } //  End of getTaxesPaid
 
+function getDivTaxCredit () {
+	let rv = 0;
+
+	let grossedUpAmnt = fcs["annualDiv"].value * brackets.grossUpRate;
+	let divTaxCredit = grossedUpAmnt * jur[part].divTaxCreditRate;
+
+	return rv;
+} // End of getDivTaxCredit
+
 function getTaxBracketLists(prov) {
 	var output = "<div id=\"taxBracketLists\">\n";
 	var rprov = (arguments.length > 1 ? arguments[1] : prov);
