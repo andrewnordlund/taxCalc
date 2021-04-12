@@ -41,10 +41,12 @@
 						<label for="yearlyContrib">Yearly Contributions $</label>
 						<input type="text" id="yearlyContrib" value="0" />
 					</div>
+					<!--
 					<div class="fieldHolder">
 						<label for="totalAnnualReturn">Total Annual Return %</label>
 						<input type="number" id="totalAnnualReturn" value="7" min="0">
 					</div>
+					-->
 					<div class="fieldHolder">
 						<label for="annualGrowth">Annual Growth %</label>
 						<input type="number" id="annualGrowth" value="4" min="0">
@@ -52,6 +54,10 @@
 					<div class="fieldHolder">
 						<label for="annualDiv">Annual Dividends %</label>
 						<input type="number" id="annualDiv" value="3" min="0">
+					</div>
+					<div class="fieldHolder" aria-live="polite">
+						<span>Total Annual Growth</span>
+						<output for="annualGrowth annualDiv" id="annualGrowthOutput">7%</output>
 					</div>
 				</fieldset>
 				<fieldset>

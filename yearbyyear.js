@@ -7,6 +7,7 @@ var fcs = {
 	"totalAnnualReturn" : null,
 	"annualGrowth" : null,
 	"annualDiv": null,
+	"annualGrowthOutput" : null,
 	"rprovince" : null,
 	"retirementIncome" : null,
 	"yearsLeft" : null,
@@ -51,12 +52,22 @@ function init () {
 		fcs[id] = document.getElementById(id);
 		//if (dbug) console.log ("Got " + id + ", and it's value is " + fcs[id].value + ".");
 	}
-	fcs["annualGrowth"].addEventListener("change", function (e) {
-		fcs["annualDiv"].value = fcs["totalAnnualReturn"].value - fcs["annualGrowth"].value;
+	/*
+	fcs["totalAnnualReturn"].addEventListener("change", function (e) {
+		console.log ("total return should be: " + (parseFloat(fcs["annualGrowth"].value) + parseFloat(fcs["annualDiv"].value)));
+		if (fcs["totalAnnualReturn"].value > (parseFloat(fcs["annualGrowth"].value) + parseFloat(fcs["annualDiv"].value))) {
+			fcs["annualGrowth"].value = fcs["totalAnnualReturn"].value - fcs["annualDiv"].value;
+		} else {
+			if (fcs["annualGrowth"].value > 0) {
+				fcs["annualGrowth"].value = fcs["totalAnnualReturn"].value - fcs["annualDiv"].value;
+			} else {
+				fcs["annualDiv"].value = fcs["totalAnnualReturn"].value;
+			}
+		}
 	}, false);
-	fcs["annualDiv"].addEventListener("change", function (e) {
-		fcs["annualGrowth"].value = fcs["totalAnnualReturn"].value - fcs["annualDiv"].value;
-	}, false);
+	*/
+	fcs["annualGrowth"].addEventListener("change", updateGrowthOutput, false);
+	fcs["annualDiv"].addEventListener("change", updateGrowthOutput, false);
 	fcs["calcBtn"].addEventListener("click", calculate, false);
 }
 
@@ -196,6 +207,10 @@ function calculate (e) {
 	
 	fcs["resultsHolder"].innerHTML = output;
 } // End of calculate
+
+function updateGrowthOutput (e) {
+	fcs["annualGrowthOutput"].innerHTML = (parseFloat(fcs["annualGrowth"].value) + parseFloat(fcs["annualDiv"].value)) + "%";
+} // End of updateGrowthOutput
 
 function calculateOld (e) {
 	if (dbug) console.log ("Calculating...");
