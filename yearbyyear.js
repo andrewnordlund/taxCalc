@@ -1,11 +1,10 @@
-var dbug = true;
+var dbug = !true;
 var fcs = {
 	"province" : null,
 	"workIncome" : null,
 	"initAmntInvested" : null,
 	"yearlyContrib" : null,
 	"totalAnnualReturn" : null,
-	"roiOutput" : null,
 	"annualGrowth" : null,
 	"annualDiv": null,
 	"rprovince" : null,
@@ -48,23 +47,16 @@ var brackets = {
 }
 function init () {
 	if (dbug) console.log("initing...");
-	let outputs = [];
 	for (id in fcs) {
 		fcs[id] = document.getElementById(id);
-		if (fcs[id].tagName == "OUTPUT" && fcs[id].hasAttribute("for")) outputs.push(fcs[id]);
-		//if (dbug) console.log ("Got " + id + ", and it's value is " + fcs[id].value + ", and it's tagName is " + fcs[id].tagName + ".");
+		//if (dbug) console.log ("Got " + id + ", and it's value is " + fcs[id].value + ".");
 	}
-	for (let i = 0; i < outputs.length; i++) {
-		if (fcs[outputs[i].getAttribute("for")].tagName == "INPUT") {
-			if (fcs[outputs[i].getAttribute("for")].type.match(/range/)) {
-				console.log (fcs[outputs[i].getAttribute("for")] + " is an input of type range.");
-				fcs[outputs[i].getAttribute("for")].addEventListener("change", updateRange, false);
-
-			} else {
-				console.log (fcs[outputs[i].getAttribute("for")] + " is an input of type " + fcs[outputs[i].getAttribute("for")].type  + ".");
-			}
-		}
-	}
+	fcs["annualGrowth"].addEventListener("change", function (e) {
+		fcs["annualDiv"].value = fcs["totalAnnualReturn"].value - fcs["annualGrowth"].value;
+	}, false);
+	fcs["annualDiv"].addEventListener("change", function (e) {
+		fcs["annualGrowth"].value = fcs["totalAnnualReturn"].value - fcs["annualDiv"].value;
+	}, false);
 	fcs["calcBtn"].addEventListener("click", calculate, false);
 }
 
@@ -204,11 +196,6 @@ function calculate (e) {
 	
 	fcs["resultsHolder"].innerHTML = output;
 } // End of calculate
-
-function updateRange (e) {
-	let range = e.target;
-	//  Asssssssshite
-} // End of updateRange
 
 function calculateOld (e) {
 	if (dbug) console.log ("Calculating...");
