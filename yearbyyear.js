@@ -4,7 +4,6 @@ var fcs = {
 	"workIncome" : null,
 	"initAmntInvested" : null,
 	"yearlyContrib" : null,
-	"totalAnnualReturn" : null,
 	"annualGrowth" : null,
 	"annualDiv": null,
 	"annualGrowthOutput" : null,
@@ -50,26 +49,22 @@ function init () {
 	if (dbug) console.log("initing...");
 	for (id in fcs) {
 		fcs[id] = document.getElementById(id);
-		//if (dbug) console.log ("Got " + id + ", and it's value is " + fcs[id].value + ".");
 	}
-	/*
-	fcs["totalAnnualReturn"].addEventListener("change", function (e) {
-		console.log ("total return should be: " + (parseFloat(fcs["annualGrowth"].value) + parseFloat(fcs["annualDiv"].value)));
-		if (fcs["totalAnnualReturn"].value > (parseFloat(fcs["annualGrowth"].value) + parseFloat(fcs["annualDiv"].value))) {
-			fcs["annualGrowth"].value = fcs["totalAnnualReturn"].value - fcs["annualDiv"].value;
-		} else {
-			if (fcs["annualGrowth"].value > 0) {
-				fcs["annualGrowth"].value = fcs["totalAnnualReturn"].value - fcs["annualDiv"].value;
-			} else {
-				fcs["annualDiv"].value = fcs["totalAnnualReturn"].value;
-			}
-		}
-	}, false);
-	*/
 	fcs["annualGrowth"].addEventListener("change", updateGrowthOutput, false);
 	fcs["annualDiv"].addEventListener("change", updateGrowthOutput, false);
 	fcs["calcBtn"].addEventListener("click", calculate, false);
 }
+
+var formatter = new Intl.NumberFormat('en-CA', {
+  style: 'currency',
+  currency: 'CAD',
+
+  // These options are needed to round to whole numbers if that's what you want.
+  //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+  //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
+  // Taken from https://stackoverflow.com/questions/149055/how-to-format-numbers-as-currency-string
+});
+
 
 function calculate (e) {
 	if (dbug) console.log ("Calculating...");
@@ -78,7 +73,6 @@ function calculate (e) {
 	let province = fcs["province"].value;
 	var initAmntInvested = fcs["initAmntInvested"].value;
 	var annualGrowth = fcs["annualGrowth"].value;
-	var totalAnnualReturn = fcs["totalAnnualReturn"].value;
 	var yearlyContrib = fcs["yearlyContrib"].value;
 	var annualDiv = fcs["annualDiv"].value;
 	var retirementTaxable = fcs["retirementIncome"].value;
@@ -93,6 +87,7 @@ function calculate (e) {
 	output += "</details>\n";
 
 	output += "<table>\n";
+	output += "<caption>Your Working Years</caption>\n";
 	output += "<thead>\n";
 	output += "<tr>\n";
 	output += "<th scope='col'>Year</th>\n";
@@ -101,14 +96,14 @@ function calculate (e) {
 	output += "<th scope=\"col\">Balance</th>\n";
 	output += "<th scope=\"col\">Taxes Paid</th>\n";
 	output += "<th scope=\"col\">Cumulative Taxes Paid</th>\n";
-	output += "<th scope=\"col\">Balance (RRSP)</th>\n";
-	output += "<th scope=\"col\">Taxes Paid (RRSP)</th>\n";
+	output += "<th scope=\"col\">RRSP Balance (Growth+Dividends)</th>\n";
+	output += "<th scope=\"col\">Taxes Paid (After RRSP Contributions)</th>\n";
 	output += "<th scope=\"col\">Cumulative Taxes Paid (RRSP)</th>\n";
 	output += "</tr>\n";
 	output += "<td>0</td>\n";		// Year
-	output += "<td>$ 0.00</td>\n";		// Growth
-	output += "<td>$ 0.00</td>\n";		// Div
-	output += "<td>$ " + initAmntInvested + "</td>\n";	// Balance
+	output += "<td>$0.00</td>\n";		// Growth
+	output += "<td>$0.00</td>\n";		// Div
+	output += "<td>" + formatter.format(initAmntInvested) + "</td>\n";	// Balance
 
 	dbug = true;
 	unregTax = getTaxesPaid (taxableIncome, province, 0);
@@ -121,11 +116,11 @@ function calculate (e) {
 	unregCumTax = unregTax;
 	rrspCumTax = rrspTax;
 
-	output += "<td>$ " + unregTax + "</td>\n";	// taxes paid on regular income
-	output += "<td>$ " + unregCumTax + "</td>\n";	// cumulative taxes paid on regular income
-	output += "<td>$ " + initAmntInvested + "</td>\n";
-	output += "<td>$ " + rrspTax + "</td>\n";	// taxes paid on (regular income - initAmntInvested)
-	output += "<td>$ " + rrspCumTax + "</td>\n";	// cumulative taxes paid on (regular income - initAmntInvested)
+	output += "<td> " + formatter.format(unregTax) + "</td>\n";	// taxes paid on regular income
+	output += "<td> " + formatter.format(unregCumTax) + "</td>\n";	// cumulative taxes paid on regular income
+	output += "<td> " + formatter.format(initAmntInvested) + "</td>\n";
+	output += "<td> " + formatter.format(rrspTax) + "</td>\n";	// taxes paid on (regular income - initAmntInvested)
+	output += "<td> " + formatter.format(rrspCumTax) + "</td>\n";	// cumulative taxes paid on (regular income - initAmntInvested)
 
 	let rrspBal = initAmntInvested;
 	let unregBal = initAmntInvested;
@@ -138,10 +133,10 @@ function calculate (e) {
 		var growth = (unregBal *  (annualGrowth/100));
 		if (dbug) console.log ("Growth: " + growth);
 
-		output += "\t<td>$ " + growth.toFixed(2) + "</td>\n";
+		output += "\t<td>" + formatter.format(growth) + "</td>\n";
 		let div = (annualDiv/100) * unregBal;
 		divTotal += div;
-		output += "\t<td>$ " + div.toFixed(2) + "</td>\n";	
+		output += "\t<td>" + formatter.format(div) + "</td>\n";	
 
 		dbug = true;
 		let taxesPaid = getTaxesPaid ((taxableIncome*1 + div*brackets.grossUpRate), province, div);
@@ -151,66 +146,79 @@ function calculate (e) {
 		unregCumTax = unregCumTax*1 + taxesPaid*1;
 		
 		unregBal = unregBal *1 + growth*1;
-		output += "\t<td>$ " + unregBal.toFixed(2) + "</td>\n";
-		output += "\t<td>$ " + taxesPaid + "</td>\n";
-		output += "\t<td>$ " + unregCumTax.toFixed(2) + "</td>\n";
+		output += "\t<td>" + formatter.format(unregBal) + "</td>\n";
+		output += "\t<td>" + formatter.format(taxesPaid) + "</td>\n";
+		output += "\t<td>" + formatter.format(unregCumTax) + "</td>\n";
 
-		rrspBal = rrspBal* (1 + (totalAnnualReturn/100))*1;
-		output += "\t<td>$ " + rrspBal.toFixed(2) + "</td>\n";
+		rrspBal = rrspBal* (1 + (calculateGrowth()/100))*1;
+		output += "\t<td>" + formatter.format(rrspBal) + "</td>\n";
 
 		rrspTax = getTaxesPaid (taxableIncome - yearlyContrib, province, 0);
 		rrspTax = rrspTax["total"]["taxesPaid"];
 
 		rrspCumTax = rrspCumTax *1 + rrspTax*1;
 		
-		output += "\t<td>$ " + rrspTax + "</td>\n";
-		output += "\t<td>$ " + rrspCumTax.toFixed(2) + "</td>\n";
+		output += "\t<td>" + formatter.format(rrspTax) + "</td>\n";
+		output += "\t<td>" + formatter.format(rrspCumTax) + "</td>\n";
 		output += "</tr>\n";
 	}
 	//output += "</tbody>\n";
 	output += "<tr>\n";
 	output += "\t<td>Totals</td>\n";
-	output += "\t<td>$ " + growth.toFixed(2) + "</td>\n";
-	output += "\t<td>$ " + divTotal.toFixed(2) + "</td>\n";
-	output += "\t<td>$ " + unregBal.toFixed(2) + "</td>\n";
-	output += "\t<td>$ " + unregCumTax.toFixed(2) + "</td>\n";
-	output += "\t<td>$ " + unregCumTax.toFixed(2) + "</td>\n";
-	output += "\t<td>$ " + rrspBal.toFixed(2) + "</td>\n";
-	output += "\t<td>$ " + rrspTax + "</td>\n";
-	output += "\t<td>$ " + rrspCumTax.toFixed(2) + "</td>\n";
+	output += "\t<td>" + formatter.format(growth) + "</td>\n";
+	output += "\t<td>" + formatter.format(divTotal) + "</td>\n";
+	output += "\t<td>" + formatter.format(unregBal) + "</td>\n";
+	output += "\t<td>" + formatter.format(unregCumTax) + "</td>\n";
+	output += "\t<td>" + formatter.format(unregCumTax) + "</td>\n";
+	output += "\t<td>" + formatter.format(rrspBal) + "</td>\n";
+	output += "\t<td>" + formatter.format(rrspTax) + "</td>\n";
+	output += "\t<td>" + formatter.format(rrspCumTax) + "</td>\n";
 	output += "</tr>\n";
 	output += "</table>\n";
 
 	output += "<section>\n";
 	
-	output += "<h3>Scenario A: Withdraw all RRSP in one gap year</h3>\n";
+	output += "<h3>Scenario A: Take a year off after work before collecting your pension and Withdraw all RRSP then</h3>\n";
 
 	output += "<dl>\n";
 	output += "	<dt>RRSP Value:</dt>\n";
-	output += "	<dd>$ " + rrspBal.toFixed(2) + "</dd>\n";
+	output += "	<dd>" + formatter.format(rrspBal) + "</dd>\n";
 
 	output += "	<dt>Taxes paid on working earnings</dt>\n";
-	output += "	<dd>$ " + rrspCumTax.toFixed(2) + "</dd>\n";
+	output += "	<dd>" + formatter.format(rrspCumTax) + "</dd>\n";
 
 	let rrspLumpSumTax = getTaxesPaid(rrspBal, rprovince, 0);
 	rrspLumpSumTax = rrspLumpSumTax["total"]["taxesPaid"];
 
 	output += "	<dt>Taxes paid on a total RRSP withdrawal</dt>\n";
-	output += "	<dd>$ " + rrspLumpSumTax + "</dd>\n";
+	output += "	<dd>" + formatter.format(rrspLumpSumTax) + "</dd>\n";
 
 	output += "	<dt>Total taxes paid</dt>\n";
 	var totTax = rrspCumTax*1 + rrspLumpSumTax*1;
-	output += "	<dd>$ " + totTax.toFixed(2) + "</dd>\n";
+	output += "	<dd>" + formatter.format(totTax) + "</dd>\n";
 	output += "</dl>\n";
 	
 	output += "</section>\n";
+
+	/*
+	output += "<section>\n";
+	output += "<h3>Scenario B: Collect pension right when work income stops, convert RRSP to RRIF and withdraw some every year.</h3>\n";
+
+	output += "</section>\n";
+	*/
 	
 	fcs["resultsHolder"].innerHTML = output;
 } // End of calculate
 
+
+
 function updateGrowthOutput (e) {
-	fcs["annualGrowthOutput"].innerHTML = (parseFloat(fcs["annualGrowth"].value) + parseFloat(fcs["annualDiv"].value)) + "%";
+	fcs["annualGrowthOutput"].innerHTML = calculateGrowth() + "%";
+	
 } // End of updateGrowthOutput
+function calculateGrowth () {
+	return (parseFloat(fcs["annualGrowth"].value) + parseFloat(fcs["annualDiv"].value));
+} // End of calculateGrowth
 
 function calculateOld (e) {
 	if (dbug) console.log ("Calculating...");
