@@ -88,17 +88,23 @@ function calculate (e) {
 
 	output += "<table>\n";
 	output += "<caption>Your Working Years</caption>\n";
+	output += "<colgoup>\n";
+	output += "<col>\n";
+	output += "<col span=\"2\">\n";
+	output += "<col span=\"3\">\n";
+	output += "<col span=\"3\">\n";
+	output += "</colgoup>\n";
 	output += "<thead>\n";
 	output += "<tr>\n";
 	output += "<th scope='col'>Year</th>\n";
 	output += "<th scope=\"col\">Growth</th>\n";
 	output += "<th scope=\"col\">Div</th>\n";
-	output += "<th scope=\"col\">Balance</th>\n";
-	output += "<th scope=\"col\">Taxes Paid</th>\n";
-	output += "<th scope=\"col\">Cumulative Taxes Paid</th>\n";
-	output += "<th scope=\"col\">RRSP Balance (Growth+Dividends)</th>\n";
-	output += "<th scope=\"col\">Taxes Paid (After RRSP Contributions)</th>\n";
-	output += "<th scope=\"col\">Cumulative Taxes Paid (RRSP)</th>\n";
+	output += "<th scope=\"col\">Unregistered Balance<div>(Divs not included)</div></th>\n";
+	output += "<th scope=\"col\">Taxes Paid<div>(No RRSP Contributions)</div></th>\n";
+	output += "<th scope=\"col\">Cumulative Taxes Paid<div>(No RRSP Contributions)</div></th>\n";
+	output += "<th scope=\"col\">RRSP Balance<div>(Growth+Dividends)</div></th>\n";
+	output += "<th scope=\"col\">Taxes Paid<div>(After RRSP Contributions)</div></th>\n";
+	output += "<th scope=\"col\">Cumulative Taxes Paid<div>(With RRSP Contributions)</div></th>\n";
 	output += "</tr>\n";
 	output += "<td>0</td>\n";		// Year
 	output += "<td>$0.00</td>\n";		// Growth
@@ -145,12 +151,12 @@ function calculate (e) {
 
 		unregCumTax = unregCumTax*1 + taxesPaid*1;
 		
-		unregBal = unregBal *1 + growth*1;
+		unregBal = unregBal *1 + growth*1 + yearlyContrib*1;
 		output += "\t<td>" + formatter.format(unregBal) + "</td>\n";
 		output += "\t<td>" + formatter.format(taxesPaid) + "</td>\n";
 		output += "\t<td>" + formatter.format(unregCumTax) + "</td>\n";
 
-		rrspBal = rrspBal* (1 + (calculateGrowth()/100))*1;
+		rrspBal = (rrspBal* (1 + (calculateGrowth()/100))*1) + yearlyContrib*1;
 		output += "\t<td>" + formatter.format(rrspBal) + "</td>\n";
 
 		rrspTax = getTaxesPaid (taxableIncome - yearlyContrib, province, 0);
