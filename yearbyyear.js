@@ -301,7 +301,7 @@ function calculate (e) {
 
 
 	output += "</section>\n";
-
+	/*
 	output += "<section>\n";
 	output += "<h2>Conclusion</h2>\n";
 	if (totTax > unregCumTax) {
@@ -323,7 +323,7 @@ function calculate (e) {
 	output += "</p>\n";
 
 	output += "</section>\n";
-	
+	*/
 	fcs["resultsHolder"].innerHTML = output;
 } // End of calculate
 
