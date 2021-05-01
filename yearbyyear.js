@@ -81,20 +81,19 @@ function calculate (e) {
 	let unregTax, rrspTax, unregCumTaxm, rrspCumTax = 0;
 
 	output += "<h2>Results</h2>\n";
-	output += "<details><summary>";
-	output += "Tax Brackets</summary>\n";
+	output += "<details>\n";
+	output += "<summary>Tax Brackets</summary>\n";
 	output += getTaxBracketLists(province, rprovince);
 	output += "</details>\n";
 
 	output += "<table>\n";
 	output += "<caption>Your Working Years</caption>\n";
-	output += "<colgoup>\n";
-	output += "<col>\n";
-	output += "<col span=\"2\">\n";
-	output += "<col span=\"3\">\n";
-	output += "<col span=\"3\">\n";
-	output += "</colgoup>\n";
 	output += "<thead>\n";
+	output += "<tr>\n";
+	output += "<th colspan=\"3\" scope=\"col\">Investment Activity</th>\n";
+	output += "<th colspan=\"3\" scope=\"col\">All Unregistered Investments</th>\n";
+	output += "<th colspan=\"3\" scope=\"col\">All Investments in RRSP</th>\n";
+	output += "</tr>\n";
 	output += "<tr>\n";
 	output += "<th scope='col'>Year</th>\n";
 	output += "<th scope=\"col\">Growth</th>\n";
@@ -106,6 +105,8 @@ function calculate (e) {
 	output += "<th scope=\"col\">Taxes Paid<div>(After RRSP Contributions)</div></th>\n";
 	output += "<th scope=\"col\">Cumulative Taxes Paid<div>(With RRSP Contributions)</div></th>\n";
 	output += "</tr>\n";
+	output += "</thead>\n";
+	output += "<tbody>\n";
 	output += "<td>0</td>\n";		// Year
 	output += "<td>$0.00</td>\n";		// Growth
 	output += "<td>$0.00</td>\n";		// Div
@@ -180,6 +181,7 @@ function calculate (e) {
 	output += "\t<td>" + formatter.format(rrspTax) + "</td>\n";
 	output += "\t<td>" + formatter.format(rrspCumTax) + "</td>\n";
 	output += "</tr>\n";
+	output += "</tbody>\n";
 	output += "</table>\n";
 
 	output += "<section>\n";
@@ -258,6 +260,9 @@ function calculateOld (e) {
 	output += "<th scope=\"col\">Marginal Amount</th>\n";
 	output += "<th scope=\"col\">Taxes paid in this bracket</th>\n";
 	output += "<th scope=\"col\">Ahead by</th>\n";
+	output += "</tr>\n";
+	output += "<tr>\n";
+	output += "<th cols=\"3\" scope=\"col\">Investment Activity</th>\n";
 	output += "</tr>\n";
 	output += "</thead>\n";
 	output += "<tbody>\n";
