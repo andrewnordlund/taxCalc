@@ -286,6 +286,20 @@ function calculate (e) {
 	output += "<p>At this point, your pension will be giving you " + formatter.format(retirementTaxable) + " and your RRIF will give you " + formatter.format(rrif) + " for a total annual taxable income of " + formatter.format(totalRetirementIncome) + ".  On this you will pay " + formatter.format(retirementTaxes["total"]["taxesPaid"]) + " in taxes, leavnig you with a take-home amount of " + formatter.format(retirementTaxes["total"]["takeHome"]) + " each year.</p>\n";
 
 	output += "</section>\n";
+
+	output += "<section>\n";
+	output += "<h3>Scenario C: No RRSP Whatsoever</h3>\n";
+	output += "<p><b>You collect your pension when you retire, and you just add your dividends onto pension income</b></p>\n";
+
+	let div = (annualDiv/100) * unregBal;
+	let taxesPaid = getTaxesPaid ((retirementTaxable*1 + div*brackets.grossUpRate), rprovince, div);
+
+	output += "<p>At this point, your pension will be giving you " + formatter.format(retirementTaxable) + " and your Dividends will give you " + formatter.format(div) + " for a total annual taxable income of " + formatter.format(retirementTaxable*1 + div*1) + ".  On this you will pay " + formatter.format(taxesPaid["total"]["taxesPaid"]) + " in taxes, leavnig you with a take-home amount of " + formatter.format(taxesPaid["total"]["takeHome"]) + " each year.</p>\n";
+
+	output += "</section>\n";
+	
+
+
 	output += "</section>\n";
 
 	output += "<section>\n";
