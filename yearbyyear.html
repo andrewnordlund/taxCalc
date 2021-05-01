@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<title>Proof of Concept Tax Calculator</title>
-		<script type="text/Javascript" src="taxCalc.js"></script>
+		<script type="text/Javascript" src="yearbyyear.js"></script>
 		<link rel="Stylesheet" type="text/css" href="taxCalc.css" />
 	</head>
 	<body>
@@ -34,25 +34,34 @@
 				<fieldset>
 					<legend>Investment</legend>
 					<div class="fieldHolder">
-						<label for="amntInvested">Amount Invested $</label>
-						<input type="text" id="amntInvested" value="5500" />
+						<label for="initAmntInvested">Initial Amount Invested $</label>
+						<input type="text" id="initAmntInvested" value="10000" />
 					</div>
 					<div class="fieldHolder">
-						<label for="investmentType">Returns Type</label>
-						<select id="investmentType">
-						<option value="int">Interest</option>
-						<option value="cg">Captial Gains</option>
-						<option value="div">Dividend</option>
-						</select>
+						<label for="yearlyContrib">Yearly Contributions $</label>
+						<input type="text" id="yearlyContrib" value="0" />
+					</div>
+					<!--
+					<div class="fieldHolder">
+						<label for="totalAnnualReturn">Total Annual Return %</label>
+						<input type="number" id="totalAnnualReturn" value="7" min="0">
+					</div>
+					-->
+					<div class="fieldHolder">
+						<label for="annualGrowth">Annual Growth %</label>
+						<input type="number" id="annualGrowth" value="4" min="0">
 					</div>
 					<div class="fieldHolder">
-						<label for="roi">RoI $</label>
-						<input type="text" id="roi" value="550" aria-describedby="roiDesc" />
-						<p id="roiDesc">This would be the interest or divident payout, or the amount of capital gains.</p>
+						<label for="annualDiv">Annual Dividends %</label>
+						<input type="number" id="annualDiv" value="3" min="0">
+					</div>
+					<div class="fieldHolder" aria-live="polite">
+						<span>Total Annual Growth</span>
+						<output for="annualGrowth annualDiv" id="annualGrowthOutput">7%</output>
 					</div>
 				</fieldset>
 				<fieldset>
-					<legend>In retirement</legend>
+					<legend>Retirement</legend>
 					<div class="fieldHolder">
 						<label for="rprovince">Province</label><br>
 						<select id="rprovince">
@@ -64,6 +73,10 @@
 						<label for="retirementIncome">Retirement Income</label>
 						<span class="labelDescription" id="reitrementIncomeDescription">(Pension income, non-investment income)</span>
 						<input type="text" id="retirementIncome" value="24000" aria-describedby="reitrementIncomeDescription"/>
+					</div>
+					<div class="fieldHolder">
+						<label for="yearsLeft">Years left until retirement</label>
+						<input id="yearsLeft" type="number" value="2">
 					</div>
 				</fieldset>
 				<div class="fieldHolder">
