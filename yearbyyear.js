@@ -91,8 +91,8 @@ function calculate (e) {
 	output += "<thead>\n";
 	output += "<tr>\n";
 	output += "<th colspan=\"3\" scope=\"col\">Investment Activity</th>\n";
-	output += "<th colspan=\"3\" scope=\"col\">All Unregistered Investments</th>\n";
-	output += "<th colspan=\"3\" scope=\"col\">All Investments in RRSP</th>\n";
+	output += "<th colspan=\"4\" scope=\"col\">All Unregistered Investments</th>\n";
+	output += "<th colspan=\"4\" scope=\"col\">All Investments in RRSP</th>\n";
 	output += "</tr>\n";
 	output += "<tr>\n";
 	output += "<th scope='col'>Year</th>\n";
@@ -101,16 +101,18 @@ function calculate (e) {
 	output += "<th scope=\"col\">Unregistered Balance<div>(Divs not included)</div></th>\n";
 	output += "<th scope=\"col\">Taxes Paid<div>(No RRSP Contributions)</div></th>\n";
 	output += "<th scope=\"col\">Cumulative Taxes Paid<div>(No RRSP Contributions)</div></th>\n";
+	output += "<th scope=\"col\">Disposable Income</th>\n";
 	output += "<th scope=\"col\">RRSP Balance<div>(Growth+Dividends)</div></th>\n";
 	output += "<th scope=\"col\">Taxes Paid<div>(After RRSP Contributions)</div></th>\n";
 	output += "<th scope=\"col\">Cumulative Taxes Paid<div>(With RRSP Contributions)</div></th>\n";
+	output += "<th scope=\"col\">Disposable Income</th>\n";
 	output += "</tr>\n";
 	output += "</thead>\n";
 	output += "<tbody>\n";
-	output += "<td>0</td>\n";		// Year
-	output += "<td>$0.00</td>\n";		// Growth
-	output += "<td>$0.00</td>\n";		// Div
-	output += "<td>" + formatter.format(initAmntInvested) + "</td>\n";	// Balance
+	output += "\t<td>0</td>\n";		// Year
+	output += "\t<td>$0.00</td>\n";		// Growth
+	output += "\t<td>$0.00</td>\n";		// Div
+	output += "\t<td>" + formatter.format(initAmntInvested) + "</td>\n";	// Balance
 
 	dbug = true;
 	unregTax = getTaxesPaid (taxableIncome, province, 0);
@@ -122,12 +124,17 @@ function calculate (e) {
 
 	unregCumTax = unregTax;
 	rrspCumTax = rrspTax;
+	
+	let totTakeHomeUnreg = taxableIncome - unregTax - initAmntInvested;
+	let totTakeHomeRRSP = taxableIncome - initAmntInvested - rrspTax;
 
-	output += "<td> " + formatter.format(unregTax) + "</td>\n";	// taxes paid on regular income
-	output += "<td> " + formatter.format(unregCumTax) + "</td>\n";	// cumulative taxes paid on regular income
-	output += "<td> " + formatter.format(initAmntInvested) + "</td>\n";
-	output += "<td> " + formatter.format(rrspTax) + "</td>\n";	// taxes paid on (regular income - initAmntInvested)
-	output += "<td> " + formatter.format(rrspCumTax) + "</td>\n";	// cumulative taxes paid on (regular income - initAmntInvested)
+	output += "\t<td> " + formatter.format(unregTax) + "</td>\n";	// taxes paid on regular income
+	output += "\t<td> " + formatter.format(unregCumTax) + "</td>\n";	// cumulative taxes paid on regular income
+	output += "\t<td> " + formatter.format(totTakeHomeUnreg) + "</td>\n";
+	output += "\t<td> " + formatter.format(initAmntInvested) + "</td>\n";
+	output += "\t<td> " + formatter.format(rrspTax) + "</td>\n";	// taxes paid on (regular income - initAmntInvested)
+	output += "\t<td> " + formatter.format(rrspCumTax) + "</td>\n";	// cumulative taxes paid on (regular income - initAmntInvested)
+	output += "\t<td> " + formatter.format(totTakeHomeRRSP) + "</td>\n";
 
 	let rrspBal = initAmntInvested;
 	let unregBal = initAmntInvested;
@@ -157,6 +164,11 @@ function calculate (e) {
 		output += "\t<td>" + formatter.format(taxesPaid) + "</td>\n";
 		output += "\t<td>" + formatter.format(unregCumTax) + "</td>\n";
 
+		let takeHomeUnreg = taxableIncome*1 + div*1 - yearlyContrib - taxesPaid;
+
+		output += "\t<td> " + formatter.format(takeHomeUnreg) + "</td>\n";
+		totTakeHomeUnreg += takeHomeUnreg;
+
 		rrspBal = (rrspBal* (1 + (calculateGrowth()/100))*1) + yearlyContrib*1;
 		output += "\t<td>" + formatter.format(rrspBal) + "</td>\n";
 
@@ -167,53 +179,136 @@ function calculate (e) {
 		
 		output += "\t<td>" + formatter.format(rrspTax) + "</td>\n";
 		output += "\t<td>" + formatter.format(rrspCumTax) + "</td>\n";
+
+		let takeHomeRRSP = taxableIncome*1 - yearlyContrib - rrspTax
+
+		output += "\t<td> " + formatter.format(takeHomeRRSP) + "</td>\n";
+
+		totTakeHomeRRSP += takeHomeRRSP;
+
 		output += "</tr>\n";
 	}
 	//output += "</tbody>\n";
 	output += "<tr>\n";
+	output += "</tbody>\n";
+	output += "<tfoot>\n";
 	output += "\t<td>Totals</td>\n";
 	output += "\t<td>" + formatter.format(growth) + "</td>\n";
 	output += "\t<td>" + formatter.format(divTotal) + "</td>\n";
 	output += "\t<td>" + formatter.format(unregBal) + "</td>\n";
 	output += "\t<td>" + formatter.format(unregCumTax) + "</td>\n";
 	output += "\t<td>" + formatter.format(unregCumTax) + "</td>\n";
+	output += "\t<td>" + formatter.format(totTakeHomeUnreg) + "</td>\n";
 	output += "\t<td>" + formatter.format(rrspBal) + "</td>\n";
 	output += "\t<td>" + formatter.format(rrspTax) + "</td>\n";
 	output += "\t<td>" + formatter.format(rrspCumTax) + "</td>\n";
+	output += "\t<td>" + formatter.format(totTakeHomeRRSP) + "</td>\n";
 	output += "</tr>\n";
-	output += "</tbody>\n";
+	output += "</tfoot>\n";
 	output += "</table>\n";
 
+	let totalInvested = initAmntInvested*1 + (yearlyContrib*yearsLeft);
+
 	output += "<section>\n";
-	
-	output += "<h3>Scenario A: Take a year off after work before collecting your pension and Withdraw all RRSP then</h3>\n";
+	output += "<h2>In the end</h2>\n";
+
+	output += "<section>\n";
+	output += "<h3>Unregistered</h3>\n";
+	output += "<p><b>Invested " + formatter.format(initAmntInvested) + " and " + formatter.format(yearlyContrib) + " every year thereafter in an unregistered account</b></p>\n";
+	output += "<dl>\n";
+	output += "	<dt>Total amount Invested:</dt>\n";
+	output += "	<dd>" + formatter.format(totalInvested) + "</dd>\n";
+	output += "	<dt>Investment Account Value at retirement:</dt>\n";
+	output += "	<dd>" + formatter.format(unregBal) + "</dd>\n";
+	output += "	<dt>Growth:</dt>\n";
+	output += "	<dd>" + formatter.format(unregBal - totalInvested) + "</dd>\n";
+	output += "	<dt>Total taxes paid (Dividends + working Income)</dt>\n";
+	output += "	<dd>" + formatter.format(unregCumTax) + "</dd>\n";
+	output += "	<dt>Total Take-Home (ie: Money in your pocket)</dt>\n";
+	output += "	<dd>" + formatter.format(totTakeHomeUnreg) + "</dd>\n";
+	output += "</dl>\n";
+	output += "</section>\n";
+
+
+	output += "<section>\n";
+	output += "<h3>RRSP</h3>\n";
+	output += "<p><b>Invested " + formatter.format(initAmntInvested) + " and " + formatter.format(yearlyContrib) + " every year thereafter, and take a year off after work before collecting your pension and Withdraw all RRSP at that time</b></p>\n";
 
 	output += "<dl>\n";
-	output += "	<dt>RRSP Value:</dt>\n";
+	output += "	<dt>Total amount Invested:</dt>\n";
+	output += "	<dd>" + formatter.format(totalInvested) + "</dd>\n";
+	output += "	<dt>RRSP Value at retirement:</dt>\n";
 	output += "	<dd>" + formatter.format(rrspBal) + "</dd>\n";
+	output += "	<dt>Growth:</dt>\n";
+	output += "	<dd>" + formatter.format(rrspBal - totalInvested) + "</dd>\n";
 
-	output += "	<dt>Taxes paid on working earnings</dt>\n";
+	output += "	<dt>Total Taxes paid (Working income - RRSP Contributions)</dt>\n";
 	output += "	<dd>" + formatter.format(rrspCumTax) + "</dd>\n";
+
+	output += "	<dt>Total Take-Home (ie: Money in your pocket)</dt>\n";
+	output += "	<dd>" + formatter.format(totTakeHomeRRSP) + "</dd>\n";
+	output += "</dl>\n";
+	
+	output += "</section>\n";
+	output += "</section>\n";
+
+
+	output += "<section>\n";
+	output += "<h2>Scenarios</h2>\n";
+	output += "<section>\n";
+	output += "<h3>Scenario A: Gap Year</h3>\n";
+	output += "<p><b>Take a gap year at retirement and withdraw your whole RRSP in one go as your whole income.</b></p>\n";
 
 	let rrspLumpSumTax = getTaxesPaid(rrspBal, rprovince, 0);
 	rrspLumpSumTax = rrspLumpSumTax["total"]["taxesPaid"];
 
-	output += "	<dt>Taxes paid on a total RRSP withdrawal</dt>\n";
-	output += "	<dd>" + formatter.format(rrspLumpSumTax) + "</dd>\n";
-
-	output += "	<dt>Total taxes paid</dt>\n";
+	//output += "	<dt>Taxes paid on a total lunmp-sum RRSP withdrawal</dt>\n";
+	//output += "	<dd>" + formatter.format(rrspLumpSumTax) + "</dd>\n";
+	//output += "	<dt>Total taxes paid</dt>\n";
 	var totTax = rrspCumTax*1 + rrspLumpSumTax*1;
-	output += "	<dd>" + formatter.format(totTax) + "</dd>\n";
-	output += "</dl>\n";
-	
-	output += "</section>\n";
+	//output += "	<dd>" + formatter.format(totTax) + "</dd>\n";
 
-	/*
+	let pensionTax = getTaxesPaid(retirementTaxable, rprovince, 0);
+
+	output += "<p>If you take this kind of gap year, your RRSP will be worth " + formatter.format(rrspBal) + ", but you will pay " + formatter.format(rrspLumpSumTax) + " taxes on it.  Your disposable income will be " + formatter.format(rrspBal - rrspLumpSumTax) + ".</p>\n";
+	output += "<p>Over all the years, your total taxes paid will be " + formatter.format(totTax) + ", and your total disposable income will be " + formatter.format(totTakeHomeUnreg + (rrspBal - rrspLumpSumTax)) + ".</p>\n";
+	output += "<p>Thereafter, with your pension, you will collect " + formatter.format(retirementTaxable) + " minus " + formatter.format(pensionTax["total"]["taxesPaid"]) + " leaving you with " + formatter.format(pensionTax["total"]["takeHome"]) + ".</p>\n";
+
+	output += "</section>\n";
 	output += "<section>\n";
-	output += "<h3>Scenario B: Collect pension right when work income stops, convert RRSP to RRIF and withdraw some every year.</h3>\n";
+	output += "<h3>Scenario B: RRSP + Pension</h3>\n";
+	output += "<p><b>Collect pension right when work income stops, convert RRSP to RRIF and withdraw 4% year.</b></p>\n";
+
+	let rrif = rrspBal * 0.04;
+	let totalRetirementIncome = retirementTaxable*1 + rrif*1;
+	let retirementTaxes = getTaxesPaid(totalRetirementIncome, rprovince, 0);
+
+	output += "<p>At this point, your pension will be giving you " + formatter.format(retirementTaxable) + " and your RRIF will give you " + formatter.format(rrif) + " for a total annual taxable income of " + formatter.format(totalRetirementIncome) + ".  On this you will pay " + formatter.format(retirementTaxes["total"]["taxesPaid"]) + " in taxes, leavnig you with a take-home amount of " + formatter.format(retirementTaxes["total"]["takeHome"]) + " each year.</p>\n";
 
 	output += "</section>\n";
-	*/
+	output += "</section>\n";
+
+	output += "<section>\n";
+	output += "<h2>Conclusion</h2>\n";
+	if (totTax > unregCumTax) {
+		output += "<p>You pay " + formatter.format(totTax - unregCumTax) + " more tax by using an RRSP instead of keeping it unregistered.</p>\n";
+	} else if (totTax < unregCumTax) {
+		output += "<p>You pay " + formatter.format(unregCumTax - totTax) + " more tax by keeping it unregistered rather than by putting it in an RRSP.</p>\n";
+	} else {
+		output += "<p>You pay the same amount of tax, regardless.</p>\n";
+	}
+
+	output += "<p>However, legally avoiding taxes is a fine goal, but don't let the tax-tail wag the investment-dog.  In terms of growth";
+	if (unregBal > rrspBal) {
+		output += " you will have made " + formatter.format(unregBal - rrspBal) + " more by leaving your investments unregistered.  Don't get an RRSP.";
+	} else if (rrspBal > unregBal) {
+		output += " you will have made " + formatter.format(rrspBal - unregBal) + " more by investing in your RRSP.  Get an RRSP.";
+	} else {
+		output += ", it was break-even.  Doesn't matter what you do.  Don't forget your TFSA!";
+	}
+	output += "</p>\n";
+
+	output += "</section>\n";
 	
 	fcs["resultsHolder"].innerHTML = output;
 } // End of calculate
