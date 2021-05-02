@@ -114,9 +114,7 @@ function calculate (e) {
 	output += "\t<td>$0.00</td>\n";		// Div
 	output += "\t<td>" + formatter.format(initAmntInvested) + "</td>\n";	// Balance
 
-	dbug = true;
 	unregTax = getTaxesPaid (taxableIncome, province, 0);
-	dbug = false;
 	rrspTax = getTaxesPaid (taxableIncome - initAmntInvested, province, 0);
 
 	unregTax=unregTax["total"]["taxesPaid"];
@@ -152,9 +150,7 @@ function calculate (e) {
 		divTotal += div;
 		output += "\t<td>" + formatter.format(div) + "</td>\n";	
 
-		dbug = true;
 		let taxesPaid = getTaxesPaid ((taxableIncome*1 + div*brackets.grossUpRate), province, div);
-		dbug = !true;
 		taxesPaid = taxesPaid["total"]["taxesPaid"];
 
 		unregCumTax = unregCumTax*1 + taxesPaid*1;
@@ -257,6 +253,8 @@ function calculate (e) {
 	output += "<h2>Scenarios</h2>\n";
 	output += "<section>\n";
 	output += "<h3>Scenario A: Gap Year</h3>\n";
+	output += "<section>\n";
+	output += "<h4>RRSP</h4>\n";
 	output += "<p><b>Take a gap year at retirement and withdraw your whole RRSP in one go as your whole income.</b></p>\n";
 
 	let rrspLumpSumTax = getTaxesPaid(rrspBal, rprovince, 0);
@@ -271,13 +269,31 @@ function calculate (e) {
 	let pensionTax = getTaxesPaid(retirementTaxable, rprovince, 0);
 
 	output += "<p>If you take this kind of gap year, your RRSP will be worth " + formatter.format(rrspBal) + ", but you will pay " + formatter.format(rrspLumpSumTax) + " taxes on it.  Your disposable income will be " + formatter.format(rrspBal - rrspLumpSumTax) + ".</p>\n";
-	output += "<p>Over all the years, your total taxes paid will be " + formatter.format(totTax) + ", and your total disposable income will be " + formatter.format(totTakeHomeUnreg + (rrspBal - rrspLumpSumTax)) + ".</p>\n";
-	output += "<p>Thereafter, with your pension, you will collect " + formatter.format(retirementTaxable) + " minus " + formatter.format(pensionTax["total"]["taxesPaid"]) + " leaving you with " + formatter.format(pensionTax["total"]["takeHome"]) + ".</p>\n";
+	output += "<p>Over all the years, your total taxes paid will be " + formatter.format(totTax) + ", and your total disposable income will be " + formatter.format(totTakeHomeRRSP + (rrspBal - rrspLumpSumTax)) + ".</p>\n";
+	output += "<p>Thereafter, with your pension, you will collect " + formatter.format(retirementTaxable) + " minus " + formatter.format(pensionTax["total"]["taxesPaid"]) + " in taxes, leaving you with " + formatter.format(pensionTax["total"]["takeHome"]) + " per year.</p>\n";
 
 	output += "</section>\n";
+	
 	output += "<section>\n";
-	output += "<h3>Scenario B: RRSP + Pension</h3>\n";
+	output += "<h4>Unregistered</h4>\n";
+	output += "<p><b>Take a gap year at retirement and withdraw your whole unregistered retirement account in one go as your whole income.</b></p>\n";
+	
+	if (dbug) console.log ("Gonna figure out capital gaines taxes on ((" + unregBal + " - " + totalInvested + ")/2), -> (" + (unregBal - totalInvested) + "/2) -> " + ((unregBal - totalInvested)/2) + ".");
+	let unregLumpSumTax = getTaxesPaid(((unregBal - totalInvested)/2), rprovince, 0);
+	unregLumpSumTax = unregLumpSumTax["total"]["taxesPaid"];
+
+	output += "<p>If you take this kind of gap year, your retirement account will be worth " + formatter.format(unregBal) + ", but you will pay " + formatter.format(unregLumpSumTax) + " (capital gains) taxes on it.  Your disposable income will be " + formatter.format(unregBal - unregLumpSumTax) + ".</p>\n";
+	output += "<p>Over all the years, your total taxes paid will be " + formatter.format(unregCumTax) + ", and your total disposable income will be " + formatter.format(totTakeHomeUnreg + (unregBal - unregLumpSumTax)) + ".</p>\n";
+	output += "<p>Thereafter, with your pension, you will collect " + formatter.format(retirementTaxable) + " minus " + formatter.format(pensionTax["total"]["taxesPaid"]) + " taxes leaving you with " + formatter.format(pensionTax["total"]["takeHome"]) + " per year.</p>\n";
+	output += "</section>\n";
+	output += "</section>\n";
+	
+	output += "<section>\n";
+	output += "<h3>Scenario B: No gap year</h3>\n";
 	output += "<p><b>Collect pension right when work income stops, convert RRSP to RRIF and withdraw 4% year.</b></p>\n";
+
+	output += "<section>\n";
+	output += "<h4>RRSP -> RRIF + Pension</h4>\n";
 
 	let rrif = rrspBal * 0.04;
 	let totalRetirementIncome = retirementTaxable*1 + rrif*1;
@@ -288,13 +304,13 @@ function calculate (e) {
 	output += "</section>\n";
 
 	output += "<section>\n";
-	output += "<h3>Scenario C: No RRSP Whatsoever</h3>\n";
-	output += "<p><b>You collect your pension when you retire, and you just add your dividends onto pension income</b></p>\n";
+	output += "<h4>Unregistered Account + Pension</h4>\n";
+	output += "<p><b>You go straight into retirement with your pension.  Every year you collect that year's dividends and withdaw that year's growth.  You never touch your balance after you retire.</b>  Note that this is highly theoretical and will never happen in the real world.</p>\n";
 
 	let div = (annualDiv/100) * unregBal;
-	let taxesPaid = getTaxesPaid ((retirementTaxable*1 + div*brackets.grossUpRate), rprovince, div);
+	let taxesPaid = getTaxesPaid ((retirementTaxable*1 + (growth*1/2) + div*brackets.grossUpRate), rprovince, div);
 
-	output += "<p>At this point, your pension will be giving you " + formatter.format(retirementTaxable) + " and your Dividends will give you " + formatter.format(div) + " for a total annual taxable income of " + formatter.format(retirementTaxable*1 + div*1) + ".  On this you will pay " + formatter.format(taxesPaid["total"]["taxesPaid"]) + " in taxes, leavnig you with a take-home amount of " + formatter.format(taxesPaid["total"]["takeHome"]) + " each year.</p>\n";
+	output += "<p>At this point, your pension will be giving you " + formatter.format(retirementTaxable) + ", your annual growth with be " + formatter.format(growth) + ", and your Dividends will give you " + formatter.format(div) + " for a total annual taxable income of " + formatter.format(retirementTaxable*1 + growth*1 + div*1) + ".  On this you will pay " + formatter.format(taxesPaid["total"]["taxesPaid"]) + " in taxes, leavnig you with a take-home amount of " + formatter.format(taxesPaid["total"]["takeHome"]) + " each year.</p>\n";
 
 	output += "</section>\n";
 	
@@ -337,156 +353,6 @@ function calculateGrowth () {
 	return (parseFloat(fcs["annualGrowth"].value) + parseFloat(fcs["annualDiv"].value));
 } // End of calculateGrowth
 
-function calculateOld (e) {
-	if (dbug) console.log ("Calculating...");
-	var taxableIncome = fcs["workIncome"].value;
-	var province = fcs["province"].value;
-	var retirementTaxable = fcs["retirementIncome"].value;
-	var rprovince = fcs["rprovince"].value;
-	var roi = fcs["roi"].value;
-	var investmentType = fcs["investmentType"].value;
-	var amntInvested = fcs["amntInvested"].value;
-	var yearsInRetirement = 1;
-	var amntSaved = 0;
-	var output ="";
-
-	output += "<h2>Results</h2>\n";
-	output += "<details><summary>";
-	output += "Tax Brackets</summary>\n";
-	output += getTaxBracketLists(province, rprovince);
-	output += "</details>\n";
-
-	output += "<table>\n";
-	output += "<thead>\n";
-	output += "<tr>\n";
-	output += "<td></td>\n";
-	output += "<th scope=\"col\">Income</th>\n";
-	output += "<th scope=\"col\">Taxes Paid</th>\n";
-	output += "<th scope=\"col\">Take Home</th>\n";
-	output += "<th scope=\"col\">Average Tax Rate</th>\n";
-	output += "<th scope=\"col\">Marginal Tax Rate</th>\n";
-	output += "<th scope=\"col\">Tax Bracket</th>\n";
-	output += "<th scope=\"col\">Marginal Amount</th>\n";
-	output += "<th scope=\"col\">Taxes paid in this bracket</th>\n";
-	output += "<th scope=\"col\">Ahead by</th>\n";
-	output += "</tr>\n";
-	output += "<tr>\n";
-	output += "<th cols=\"3\" scope=\"col\">Investment Activity</th>\n";
-	output += "</tr>\n";
-	output += "</thead>\n";
-	output += "<tbody>\n";
-
-	//if (dbug) console.log ("With values: prov: " + province + ", and work income: $" + taxableIncome + ".");
-	
-	// The order here should be a nested loop.  For each [TFSA, Unregistered, RRSP], do [working, retirement]
-	for (var i in accountTypes) {
-		if (dbug) console.log ("calculate::" + i + ".");
-		output += "<tr>\n";
-		output += "<th scope=\"col\" id=\"tfsa\" colspan=\"10\">" + i + "</th>\n";
-		output += "</tr>\n";
-
-		for (var j = 0; j < times.length; j++) {
-			if (dbug) console.log ("calculate::" + times[j] + ".");
-			var divTaxCredit = false;
-			output += "<tr>\n";
-			output += "<th scope=\"col\" id=\"tfsa\" colspan=\"10\">" + times[j] + "</th>\n";
-			output += "</tr>\n";
-			var inc, prov;
-			prov = fcs[(times[j] == "Retirement" ? "r" : "") + "province"].value;
-			inc = fcs[(times[j] == "Retirement" ? "retirement" : "work") + "Income"].value;
-			if (i == "RRSP") {
-				if (times[j] == "Working") {
-					inc = inc - amntInvested;
-					// Here I should figure out the difference between your taxes and what they would have been in an unregistered account.
-					// But where to add that in a note?
-				} else {
-					inc = parseFloat(inc) + (parseFloat(roi)/yearsInRetirement);
-				}
-			} else if (i == "Unregistered") {
-				if (investmentType == "div") {
-					inc = parseFloat(inc) + parseFloat(roi * brackets.grossUpRate);
-					divTaxCredit = true;
-				} else if (investmentType == "cg" && times[j] == "Retirement") {
-					inc = parseFloat(inc) + parseFloat(roi/2);
-				} else if (investmentType == "int" && times[j] == "Retirement") {
-					inc = parseFloat(inc) + parseFloat(roi);
-				}
-
-			}
-			var taxesPaid = getTaxesPaid(inc, prov, divTaxCredit);
-			// Gotta calculate how much ahead you are.  Shucks.  How am I gonna do this....
-			/*
-			if (times[j] == "Retirement") {
-				// For TFSA:  You're ahead the ROI. period.
-				if (accountTypes[i] == "TFSA") {
-					taxesPaid["total"]["ahead"]= fcs["roi"].value;
-				} else if (accountTypes[i] == "RRSP") {
-					// For RRSP: you're ahead the tax return + roi - taxes paid
-					// Take net pay retirement/rrsp - net pay retirement/unregistered + wokring[ahead]
-				} else if (accountTypes[i] == "Unregistered") {
-					// For Unregistered, you're ahead the roi - taxes paid
-					//var ahead = fcs["roi"].value
-					
-				}
-				//taxesPaid["total"]["ahead"] = (times[j].match(/retirement/i) ? fcs["roi"].value : " - ");
-			}
-			*/
-			accountTypes[i][times[j]] = taxesPaid;
-			output += "<tbody>\n";
-			for (var k in taxesPaid) {
-				//console.log("Dealing with " + k + " in taxesPaid.");
-				output += "<tr>\n";
-				output += "<td>" + k + "</td>\n";
-				output += "<td>$" + inc + "</td>\n";
-				output += "<td>$" + accountTypes[i][times[j]][k]["taxesPaid"];
-				if (amntInvested > 0) {
-					if (i == "RRSP") {
-						if (times[j] == "Working") {
-							output += "<div>Tax Return $";
-							let diff = accountTypes["Unregistered"]["Working"][k]["taxesPaid"] - accountTypes["RRSP"]["Working"][k]["taxesPaid"];
-							output += diff.toFixed(2) + "</div>";
-							accountTypes[i]["Working"][k]["ahead"] = diff.toFixed(2);
-						} else if (times[j] == "Retirement") {
-							let diff = accountTypes["RRSP"]["Retirement"][k]["takeHome"] - accountTypes["Unregistered"]["Retirement"][k]["takeHome"];
-							//(parseFloat(fcs["retirementIncome"].value) + (parseFloat(roi)/yearsInRetirement) - accountTypes["Unregistered"][times[j]][k]["taxesPaid"]);
-							accountTypes[i]["Retirement"][k]["ahead"] = diff.toFixed(2);
-						}
-					} else if (i == "TFSA") {
-						if (times[j] == "Working") accountTypes[i]["Working"][k]["ahead"] = " - ";
-						if (times[j] == "Retirement") accountTypes[i]["Retirement"][k]["ahead"] = roi;
-					} else if (i == "Unregistered") {
-						if (times[j] == "Working") { 
-							accountTypes[i]["Working"][k]["ahead"] = " - ";
-						} else if (times[j] == "Retirement") {
-							//accountTypes[i]["Retirement"][k]["ahead"] = roi;  // This isn't accurate.
-							// You'd be ahead the (income + roi - taxes) - (income - taxes)
-							var tempTaxesPaid = getTaxesPaid(fcs["retirementIncome"].value, prov, divTaxCredit);
-							accountTypes[i]["Retirement"][k]["ahead"] = (accountTypes[i]["Retirement"][k]["takeHome"] - parseFloat(tempTaxesPaid[k]["takeHome"])).toFixed(2);
-						}
-					}
-				} else {
-					if (times[j] == "Retirement") accountTypes[i]["Retirement"][k]["ahead"] = " - ";
-					if (times[j] == "Working") accountTypes[i]["Working"][k]["ahead"] = " - ";
-				}
-				output += "</td>\n";
-				output += "<td>$" + accountTypes[i][times[j]][k]["takeHome"].toFixed(2) /*parseFloat(inc - accountTypes[i][times[j]][k]["taxesPaid"]).toFixed(2)*/ + "</td>\n";
-				output += "<td>" + accountTypes[i][times[j]][k]["avgRate"] + "%</td>\n";
-				output += "<td>" + accountTypes[i][times[j]][k]["marginalRate"] + "%</td>\n";
-				output += "<td>" + accountTypes[i][times[j]][k]["bracket"] + "<div>" + taxesPaid[k]["range"] + "</td>\n";
-				output += "<td>$" + accountTypes[i][times[j]][k]["marginalAmount"] + "</td>\n";
-				output += "<td> $" + accountTypes[i][times[j]][k]["marginalPaid"] + "</td>\n";
-				output += "<td>" + (accountTypes[i][times[j]][k]["ahead"] == " - " ? " - " : "$" + accountTypes[i][times[j]][k]["ahead"]) + "</td>\n";
-				output += "</tr>\n";
-			}
-			output += "</tbody>\n";
-		}
-	}
-	output += "</tbody>\n";
-	output += "</table>\n";
-	
-	fcs["resultsHolder"].innerHTML = output;
-
-} // End of calculateOld
 
 function getTaxesPaid (taxable, prov, divAmnt) {
 	var rv = {
@@ -570,7 +436,7 @@ function getTaxesPaid (taxable, prov, divAmnt) {
 		// Then subtract that amount from taxesPaid
 		let ptc = jur[part]["basicPersonal"] * jur[part]["rate"][1];
 		if (dbug) console.log ("Basic Personal Credit: $"  +ptc + ".");
-		taxesPaid = taxesPaid - ptc;
+		taxesPaid = Math.max(taxesPaid - ptc, 0);
 		if (dbug) {
 			console.log (part + ": taxable: " + taxable + ", taxesPaid: " + taxesPaid);
 			console.log (part + ": takeHome: " + (taxable - taxesPaid) + ".");
