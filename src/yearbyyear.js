@@ -1,4 +1,5 @@
 var dbug = !true;
+let version="1.0.0";
 var fcs = {
 	"province" : null,
 	"workIncome" : null,
